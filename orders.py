@@ -7,7 +7,8 @@ TAX = 0.15
 separator = "=============================="
 
 def process_order(token, items, coupon=None, shipping="standard", log=None):
-    log = []
+    if log is None:
+        log = []
     username = auth.sessions.get(token)
     if username != None:
         if items == []:
