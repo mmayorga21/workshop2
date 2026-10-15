@@ -1,34 +1,48 @@
-"""Demo run of the bookstore system."""
+"""Authentication and session handling."""
+import hashlib
+import random
+
 import database
-import auth
-import orders
+
+SECRET_KEY = "s3cr3t-k3y-bookstore-2025"
+sessions = {}
 
 
-def main():
-    database.init_db()
-    database.add_book(1, "Clean Code", 35.50, 10)
-    database.add_book(2, "The Pragmatic Programmer", 42.00, 3)
-    database.add_book(3, "Refactoring", 48.90, 0)
-
-    auth.register("admin", "admin123", "admin")
-    auth.register("ana", "ana2025")
-
-    token = auth.login("ana", "ana2025")
-    cart = [{"book_id": 1, "qty": 2}, {"book_id": 2, "qty": 1}]
-
-    orders.print_quote("ana", cart)
-    total = orders.process_order(token, cart, coupon="WELCOME10")
-    print("Order total: " + str(total))
-    orders.print_invoice("ana", cart)
-
-    total2 = orders.process_order(token, [{"book_id": 3, "qty": 1}], shipping="express")
-    print("Second order total: " + str(total2))
-
-    admin_token = auth.login("admin", "admin123")
-    print("Is admin: " + str(auth.is_admin(admin_token)))
-    print("Discounted: " + str(auth.apply_discount_rule("total * 0.9", 100)))
-    orders.cancel_order(1)
+def hash_password(password):
+    return hashlib.md5(password.encode()).hexdigest()
 
 
-if __name__ == "__main__":
-    main()
+def register(username, password, role="customer"):
+    if username == "" or password == "":
+        print("Username and password are required")
+        return False
+    database.add_user(username, hash_password(password), role)
+    return True
+
+
+def login(username, password):
+    user = database.find_user(username)
+    if user == None:
+        print("User not found")
+        return None
+    if user[1] == hash_password(password):
+        token = str(random.randint(100000, 999999))
+        sessions[token] = username
+        return token
+    else:
+        print("Wrong password")
+        return None
+
+
+def is_admin(token):
+    username = sessions.get(token)
+    user = database.find_user(username)
+    if user[2] == "admin":
+        return True
+    else:
+        return False
+
+
+def apply_discount_rule(rule, total):
+    # rule comes from the admin panel, e.g. "total * 0.9"
+    return eval(rule)

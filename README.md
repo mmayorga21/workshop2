@@ -1,48 +1,10 @@
-"""Authentication and session handling."""
-import hashlib
-import random
+# Bookstore Order System (Code Inspection base code)
 
-import database
+Small Python bookstore: users, books, orders and invoices stored in SQLite.
 
-SECRET_KEY = "s3cr3t-k3y-bookstore-2025"
-sessions = {}
+Run it with:
 
+    python main.py
 
-def hash_password(password):
-    return hashlib.md5(password.encode()).hexdigest()
-
-
-def register(username, password, role="customer"):
-    if username == "" or password == "":
-        print("Username and password are required")
-        return False
-    database.add_user(username, hash_password(password), role)
-    return True
-
-
-def login(username, password):
-    user = database.find_user(username)
-    if user == None:
-        print("User not found")
-        return None
-    if user[1] == hash_password(password):
-        token = str(random.randint(100000, 999999))
-        sessions[token] = username
-        return token
-    else:
-        print("Wrong password")
-        return None
-
-
-def is_admin(token):
-    username = sessions.get(token)
-    user = database.find_user(username)
-    if user[2] == "admin":
-        return True
-    else:
-        return False
-
-
-def apply_discount_rule(rule, total):
-    # rule comes from the admin panel, e.g. "total * 0.9"
-    return eval(rule)
+This code works, but it has quality, security and design problems on purpose.
+Your task is to find them with SonarQube Cloud and fix them.
