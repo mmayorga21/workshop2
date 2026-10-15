@@ -94,5 +94,7 @@ def cancel_order(order_id):
         conn = database.get_connection()
         conn.execute(f"UPDATE orders SET status = 'CANCELLED' WHERE id = {order_id}")
         conn.commit()
-    except:
-        pass
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"Error cancelling order {order_id}: {e}")
